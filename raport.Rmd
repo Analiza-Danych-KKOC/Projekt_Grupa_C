@@ -77,4 +77,10 @@ hejka
 hejka/2
 hejka/3
 HEJKA
+<<<<<<< HEAD
 >>>>>>> 66647f9 (kk)
+=======
+
+chyba nam sie udalo
+
+>>>>>>> df6304c (test ostateczny)
