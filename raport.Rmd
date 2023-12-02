@@ -72,3 +72,9 @@ rules <- validate(
 # siema
 aaa
 hejka
+<<<<<<< HEAD
+=======
+hejka/2
+hejka/3
+HEJKA
+>>>>>>> 66647f9 (kk)
