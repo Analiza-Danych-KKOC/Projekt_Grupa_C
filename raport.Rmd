@@ -81,6 +81,6 @@ HEJKA
 >>>>>>> 66647f9 (kk)
 =======
 
-chyba nam sie udalo
+chyba nam sie udaloo
 
 >>>>>>> df6304c (test ostateczny)
