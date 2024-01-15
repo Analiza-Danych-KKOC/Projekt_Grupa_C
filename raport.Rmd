@@ -1,2 +1,44 @@
-# siema
-aaa
+library(dplyr)
+library(ggplot2)
+library(rmdformats)
+library(validate)
+library(validatetools)
+install.packages("imputeTS")
+library(imputeTS)
+
+
+
+
+dane <- read.csv("pozyczki.csv")
+head(dane)
+summary(dane)
+
+print(colnames(dane))
+dane
+
+colnames(dane)[colnames(dane) == "Loan_ID"] <- "id"
+colnames(dane)[colnames(dane) == "Gender"] <- "plec"
+colnames(dane)[colnames(dane) == "Married"] <- "stan.cywilny"
+colnames(dane)[colnames(dane) == "Dependents"] <- "liczba.osob.na.utrzymaniu"
+colnames(dane)[colnames(dane) == "Education"] <- "wyksztalcenie"
+colnames(dane)[colnames(dane) == "Self_Employed"] <- "samozatrudnienie"
+colnames(dane)[colnames(dane) == "ApplicantIncome"] <- "dochod"
+colnames(dane)[colnames(dane) == "CoapplicantIncome"] <- "dochod2"
+colnames(dane)[colnames(dane) == "LoanAmount"] <- "kwota.kredytu"
+colnames(dane)[colnames(dane) == "Loan_Amount_Term"] <- "czas.trwania"
+colnames(dane)[colnames(dane) == "Credit_History"] <- "historia.kredytowa"
+colnames(dane)[colnames(dane) == "Property_Area"] <- "obszar.nieruchomosci"
+colnames(dane)[colnames(dane) == "Loan_Status"] <- "stan.kredytu
+
+
+
+#dochód większy, równy 0
+#dochód2 większy, równy 0
+#kwot akredytu większa, równa 0
+#jeśli dochód większy od 0, kwota kredytu większa, równa 0  
+
+rules <- validate( 
+  dochod >= 0,
+  dochod2 >= 0,
+  kwota.kredytu >= 0,
+  if (dochod > 0 && kwota.kredytu >= 0)
