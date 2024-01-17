@@ -1,3 +1,4 @@
+
 install.packages("impute")
 library(dplyr)
 library(ggplot2)
@@ -67,3 +68,7 @@ rules <- validate(
   dochod2 >= 0,
   kwota.kredytu >= 0,
   if (dochod > 0 && kwota.kredytu >= 0)
+
+# siema
+aaa
+hejka
