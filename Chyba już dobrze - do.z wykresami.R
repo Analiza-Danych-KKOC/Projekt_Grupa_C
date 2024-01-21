@@ -169,7 +169,64 @@ plot7 <- ggplot(tab, aes(x = Var1, y = Freq)) +
 # wykres wspólny
 grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, plot7, nrow = 3)
 
-Rozkłady zmiennych są bardzo nieregularne. W przypadku trzech pierwszych mamy skrajną 
-asymetrię prawostronną (wydłużone ramię z prawej strony histogramu). 
+W przypadku historii kredytowej nie mamy zaetykietowanych odpowiedzi, 
+ale najprawdopodobniej oznaczają one 0=no, 1=yes.
+
+Poszczególne zmienne cechuje bardzo duża dysproporcja w rozkładach procentowych kategorii.
+
+# Ilościowe zmienne objaśniające
+Dla ilościowych zmiennych objaśniających obliczamy najpierw podstawowe miary rozkładu.
+
+# statystyki opisowe
+kable(describe(dane[,6:9])[c(2:5,8,9,11,12)])
+
+W przypadku zmiennych `LoanAmount` i `Loan_Amount_Term` mamy braki danych (n<614). 
+W powyższej tabeli zawarte są podstawowe miary położenia, rozproszenia, asymterii i skupienia.
+
+Średni dochód aplikującego o pożyczkę w badanej grupie klientów to 5403,46 dolarów, 
+przy czym dochody poszczególnych osób różnią się od średniej przeciętnie o 6109,04 dolarów. 
+Dla połowy osób dochód nie przekracza 3812,50 dolarów. 
+Najmniejsza zaobserwowana wartość to 150 dolarów, a największa aż 81000 dolarów. 
+W rozkładzie występuje skrajna asymetria prawostronna, jest on też wyższy i smuklejszy 
+od rozkładu normalnego.
+
+Dla pozostałych zmiennych wyniki interpretuje się analogicznie. 
+Zakresy osiąganych wartości są tutaj sensowne, nie ma żadnych wartości ujemnych. 
+Jedyny problem stanowią bardzo duże wartości skupienia i kurtozy, na które wpływ 
+mają najprawdopodobniej obserwacje odstające.
+
+Do prezentacji graficznej sporządzamy histogramy.
+
+# histogramy
+plot1 <- ggplot(dane, aes(x = ApplicantIncome)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Applicant Income", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot2 <- ggplot(dane, aes(x = CoapplicantIncome)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Coapplicant Income", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot3 <- ggplot(dane, aes(x = LoanAmount)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Loan Amount", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot4 <- ggplot(dane, aes(x = Loan_Amount_Term)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Loan Amount Term", 
+       x = "months", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+grid.arrange(plot1, plot2, plot3, plot4, nrow = 2)
+
+Rozkłady zmiennych są bardzo nieregularne. 
+W przypadku trzech pierwszych mamy skrajną asymetrię prawostronną (wydłużone ramię z prawej strony histogramu). 
 Dla ostatniej zmiennej asymetria jest lewostronna.
+
+
 
