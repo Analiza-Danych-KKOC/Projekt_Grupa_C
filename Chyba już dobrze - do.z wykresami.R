@@ -169,7 +169,170 @@ plot7 <- ggplot(tab, aes(x = Var1, y = Freq)) +
 # wykres wspólny
 grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, plot7, nrow = 3)
 
-Rozkłady zmiennych są bardzo nieregularne. W przypadku trzech pierwszych mamy skrajną 
-asymetrię prawostronną (wydłużone ramię z prawej strony histogramu). 
+W przypadku historii kredytowej nie mamy zaetykietowanych odpowiedzi, 
+ale najprawdopodobniej oznaczają one 0=no, 1=yes.
+
+Poszczególne zmienne cechuje bardzo duża dysproporcja w rozkładach procentowych kategorii.
+
+# Ilościowe zmienne objaśniające
+Dla ilościowych zmiennych objaśniających obliczamy najpierw podstawowe miary rozkładu.
+
+# statystyki opisowe
+kable(describe(dane[,6:9])[c(2:5,8,9,11,12)])
+
+W przypadku zmiennych `LoanAmount` i `Loan_Amount_Term` mamy braki danych (n<614). 
+W powyższej tabeli zawarte są podstawowe miary położenia, rozproszenia, asymterii i skupienia.
+
+Średni dochód aplikującego o pożyczkę w badanej grupie klientów to 5403,46 dolarów, 
+przy czym dochody poszczególnych osób różnią się od średniej przeciętnie o 6109,04 dolarów. 
+Dla połowy osób dochód nie przekracza 3812,50 dolarów. 
+Najmniejsza zaobserwowana wartość to 150 dolarów, a największa aż 81000 dolarów. 
+W rozkładzie występuje skrajna asymetria prawostronna, jest on też wyższy i smuklejszy 
+od rozkładu normalnego.
+
+Dla pozostałych zmiennych wyniki interpretuje się analogicznie. 
+Zakresy osiąganych wartości są tutaj sensowne, nie ma żadnych wartości ujemnych. 
+Jedyny problem stanowią bardzo duże wartości skupienia i kurtozy, na które wpływ 
+mają najprawdopodobniej obserwacje odstające.
+
+Do prezentacji graficznej sporządzamy histogramy.
+
+# histogramy
+plot1 <- ggplot(dane, aes(x = ApplicantIncome)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Applicant Income", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot2 <- ggplot(dane, aes(x = CoapplicantIncome)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Coapplicant Income", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot3 <- ggplot(dane, aes(x = LoanAmount)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Loan Amount", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot4 <- ggplot(dane, aes(x = Loan_Amount_Term)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Loan Amount Term", 
+       x = "months", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+grid.arrange(plot1, plot2, plot3, plot4, nrow = 2)
+
+Rozkłady zmiennych są bardzo nieregularne. 
+W przypadku trzech pierwszych mamy skrajną asymetrię prawostronną 
+(wydłużone ramię z prawej strony histogramu). 
 Dla ostatniej zmiennej asymetria jest lewostronna.
+
+# Klasyfikacja
+Nasza zmienna objaśniana, czyli fakt przyznania pożyczki, 
+to zmienna nominalna o dwóch wariantach odpowiedzi. 
+Do jej przewidywania należy użyć jednej z metod klasyfikacji. 
+Ze względu na specyfikę problemu, dostępne dane, mamy niewielkie pole wyboru, 
+jeśli chodzi o klasyfikator. Zmienne objaśniające to tutaj w większości zmienne 
+jakościowe, więc do klasyfikacji najrozsądniej zastosować **drzewo decyzyjne**. 
+Klasyfikatory takie jak regresja logistyczna, LDA, czy KNN nie znajdą w tym 
+przypadku zastosowania, trzeba by przekodować zmienne przy użyciu kilkunastu 
+zmiennych zero-jedynkowych, uniemożliwiając w praktyce interpretację wyników.
+
+Wykorzystamy wariant ze zbiorem uczącym (70% zbioru obserwacji) i testowym (30%). 
+Dla zapewnienia odtwarzalności wyników ustawiamy ziarno generatora liczb losowych.
+
+# liczba obserwacji 
+n <- nrow(dane)
+
+# ziarno generatora liczb losowych
+set.seed(10101)
+
+# indeksy obserwacji zbioru treningowego (70% całego zbioru danych)
+ind_tren <- sample(1:n, size = 0.7*n, replace = FALSE)
+
+# indeksy obserwacji zbioru testowego
+ind_test <- setdiff(1:n,ind_tren) 
+
+# zbiór treningowy
+trening <- dane[ind_tren,] 
+
+# zbiór testowy
+test <- dane[ind_test,]
+
+Budujemy drzewo decyzyjne na zbiorze uczącym oraz sporządzamy jego wykres.
+
+# model 1
+set.seed(10101)
+drzewo <- rpart(Loan_Status ~ ., data = trening, method = "class", control = rpart.control(cp = 0))
+
+# wykres drzewa
+prp(drzewo)
+
+W węzłach mamy pytania o wartości poszczególnych zmiennych objaśniających 
+(czy ta zmienna spełnia wymieniony warunek). 
+Lewa gałąź oznacza spełnienie warunku z węzła (yes), prawa gałąź to jego 
+niespełnienie (no). Jest to drzewo binarne, więc zbiór odpowiedzi jest dzielony 
+]w możliwie najlepszy sposób tylko na dwie grupy. W liściach znajdują sie oceny 
+klas (otrzymanie pożyczki lub nie). Mamy uwzględnione tylko istotne zmienne.
+
+Przykładowo dla ścieżki najbardziej na lewo mamy osobę bez historii kredytowej 
+(Credit_History=0 i lewa gałąź oznaczająca "yes"). 
+Osoba taka automatycznie nie uzyskuje pożyczki.
+
+Aby ocenić jakość klasyfikatora wyznaczamy oceny zmiennej zależnej dla wartości 
+zmiennych ze zbioru testowego (który nie brał udziału w budowie drzewa), 
+a następnie porównujemy je z rzeczywistymi etykietami klas dla obserwacji 
+z tego zbioru, wyznaczamy macierz błędu (*confiusion matrix*), 
+czyli tabelę krzyżową ocen i prawdziwych wartosci obserwacji ze zbioru testowego.
+
+# wartości prognozowane dla danych ze zbioru testowego
+oceny <- predict(drzewo, newdata = test, type = "class")
+
+# macierz błędu
+table(przewidywane = oceny, rzeczywiste = test$Loan_Status)
+
+# błąd klasyfikacji
+mean(oceny != test$Loan_Status) 
+
+Na głównej przekątnej mamy obserwacje poprawnie sklasyfikowane, 
+poza nią obserwacje niepoprawnie sklasyfikowane. Błąd klasyfikacji to odsetek 
+przypadków niepoprawnie sklasyfikowanych.
+
+Błąd klasyfikacji wyniósł aż 27%, to właściwie dyskwalifikuje zdudowany klasyfikator. 
+
+Potencjalną poprawę wyników można uzyskać przycinając drzewo. Do przycięcia drzewa wykorzystujemy optymalną wartość CP (*Complexity parameter*), jest to wartość, dla której błąd oparty na walidacji krzyżowej jest najmniejszy.
+
+# optymalne CP
+CP_opt <- drzewo$cptable[which.min(drzewo$cptable[,"xerror"]),"CP"]
+
+# drzewo przycięte
+set.seed(10101)
+drzewo2 <- prune(drzewo, cp = CP_opt)
+
+# wartości prognozowane dla danych ze zbioru testowego
+oceny <- predict(drzewo2, newdata = test, type = "class")
+
+# macierz błędu
+table(przewidywane = oceny, rzeczywiste = test$Loan_Status)
+
+# błąd klasyfikacji
+mean(oceny != test$Loan_Status) 
+
+Błąd spadł to 19,4%.
+
+# Podsumowanie
+Specyfika rozważanego zagadnienia spowodawała, że wybór możliwych do zastosowania 
+metod klasyfikacji okazał się mocno ograniczony. Większość klasyfikatorów, jak choćby LDA, 
+wymaga operowania ilościowymi zmiennymi objaśniającymi. W tym przypadku obserwacje to 
+konkretne osoby, a ludzie opisywani są zazwyczaj cechami jakościowymi, np. płeć, stan 
+cywilny, poziom wykształcenia.
+
+Drzewa decyzyjne są popularną metodą klasyfikacji dzięki łatwości interpretacji 
+wyników danych na wykresie drzewa binarnego. W przypadku bardzo dużych drzew ich 
+czytelność jest niestety ograniczona, stąd konieczność oceny klasyfikatora głównie 
+na podstawie błędu klasyfikacji. Tutaj wyniósł on aż 27%.
+Nieznaczą poprawę udało się uzyskać dzięki przycięciu drzewa, błąd spadł do 19,4%, 
+jednak nadal jest to wynik daleki od oczekiwanego. 
 
