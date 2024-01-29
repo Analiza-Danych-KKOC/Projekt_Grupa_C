@@ -72,3 +72,19 @@ rules <- validate(
 # siema
 aaa
 hejka
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+hejka/2
+hejka/3
+HEJKA
+<<<<<<< HEAD
+>>>>>>> 66647f9 (kk)
+=======
+
+chyba nam sie udaloo
+
+>>>>>>> df6304c (test ostateczny)
+=======
+
+>>>>>>> a31bcb37ef0d8c5ee7b99d660bfb9491fc747c79
