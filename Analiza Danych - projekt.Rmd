@@ -290,7 +290,7 @@ drzewo <- rpart(Loan_Status ~ ., data = trening, method = "class", control = rpa
 prp(drzewo)
 ```
 
-W węzłach mamy pytania o wartości poszczególnych zmiennych objaśniających (czy ta zmienna spełnia wymieniony warunek). Lewa gałąź oznacza spełnienie warunku z węzła (yes), prawa gałąź to jego niespełnienie (no). Jest to drzewo binarne, więc zbiór odpowiedzi jest dzielony w możliwie najlepszy sposób tylko na dwie grupy. W liściach znajdują sie oceny klas (otrzymanie pożyczki lub nie). Mamy uwzględnione tylko istotne zmienne.
+1W węzłach mamy pytania o wartości poszczególnych zmiennych objaśniających (czy ta zmienna spełnia wymieniony warunek). Lewa gałąź oznacza spełnienie warunku z węzła (yes), prawa gałąź to jego niespełnienie (no). Jest to drzewo binarne, więc zbiór odpowiedzi jest dzielony w możliwie najlepszy sposób tylko na dwie grupy. W liściach znajdują sie oceny klas (otrzymanie pożyczki lub nie). Mamy uwzględnione tylko istotne zmienne.
 
 Przykładowo dla ścieżki najbardziej na lewo mamy osobę bez historii kredytowej (Credit_History=0 i lewa gałąź oznaczająca "yes"). Osoba taka automatycznie nie uzyskuje pożyczki.
 
