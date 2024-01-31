@@ -1,0 +1,294 @@
+---
+title: "Pożyczki"
+author: "Aleksandra, Cezary, Karolina"
+output: html_document
+---
+
+```{r, include = FALSE}
+# instalacja (jeśli potrzeba) i załadowanie niezbędnych pakietów
+if (!require(knitr)) install.packages("knitr")
+library(knitr)
+if (!require(tidyverse)) install.packages("tidyverse")
+library(tidyverse)
+if (!require(gridExtra)) install.packages("gridExtra")
+library(gridExtra)
+if (!require(psych)) install.packages("psych")
+library(psych)
+if (!require(ipred)) install.packages("ipred")
+library(ipred)
+if (!require(rpart)) install.packages("rpart")
+library(rpart)
+if (!require(rpart.plot)) install.packages("rpart.plot")
+library(rpart.plot)
+
+# szerokość wydruku
+options(width = 150)
+```
+
+# Wstęp
+## Opis problemu
+Celem niniejszego opracowania jest budowa klasyfikatora, który pozwoli możliwie dokładnie przewidzieć decyzję dotyczącą przyznania pożyczki klientom pewnej firmy pożyczkowej.
+
+## Baza danych
+Podstawą analizy jest baza danych klientów firmy pożyczkowej.
+
+```{r}
+# wczytanie danych
+sciezka <- "/Users/czare/Desktop/Analiza Grupa C/pozyczki.csv"
+dane <- read.csv(sciezka)
+
+# wyświetlenie pierwszych wierszy danych
+kable(head(dane))
+```
+
+```{r}
+# wyświetlanie danych
+str(dane)
+```
+
+## Zmienne
+Zmienną objaśnianą jest zmienna `Loan_Status` określająca, czy danej osobie przyznano pożyczkę (Y/N).
+
+Zmienne objaśniające to głównie zmienne socjo-demograficzne oraz informacje finansowe.
+
+```{r}
+# nazwy zmiennych objaśniających
+data.frame(zmienna = names(dane)[2:12])
+```
+
+## Czyszczenie dancyh 
+
+Pierwsza kolumna w bazie danych (`Loan_ID`) określa numer identyfikacyjny, ją możemy pominąć.
+
+```{r}
+# usunięcie pierwszej kolumny
+dane <- dane %>%
+  select(-1)
+```
+
+Mamy 614 obserwacji (klientów firmy) opisanych przez 12 zmiennych.
+
+## Dodanie kolumny pomocniczej 
+
+Dodanie kolumny Total income, która pokazuję dochód dwoch osób składających wniosek. Total income by one, pokazuję dochód całkowity dochód przeliczając na jedną osobę.
+
+```{r}
+dane <- dane %>%
+  mutate(Total_income = (ApplicantIncome + CoapplicantIncome))
+dane <- dane %>%
+  mutate(Total_income_by_one = (ApplicantIncome + CoapplicantIncome)/2)
+```
+
+
+# Wizaulizacja danych
+
+## Decyzja pożyczkowa
+Zmienna `Loan_Status` to zmienna jakościowa wyrażona na skali nominalnej.
+
+```{r}
+# wykres słupkowy dla zmiennej Loan_Status
+tab <- as.data.frame(100*prop.table(table(dane$Loan_Status)))
+ggplot(tab, aes(x = Var1, y = Freq)) + 
+  geom_col(fill = "#FFFF99", colour = "black") +
+  geom_text(aes(label = paste0(round(Freq,1),"%")), 
+            stat = "identity", size = 5, 
+            fontface = "bold", position = position_stack(vjust = 0.5)) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(colour = "black", size = 10),
+        plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Decyzja pożyczkowa",
+       y = "%")
+```
+
+
+## Jakościowe zmienne objaśniające
+
+```{r}
+tab <- as.data.frame(100*prop.table(table(dane$Gender)))
+ggplot(tab, aes(x = Var1, y = Freq)) + 
+  geom_col(fill = "#FFFF99", colour = "black") +
+  geom_text(aes(label = paste0(round(Freq,1),"%")), 
+            stat = "identity", size = 4, 
+            fontface = "bold", position = position_stack(vjust = 0.5)) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(colour = "black", size = 10),
+        plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Gender",
+       y = "%")
+```
+
+
+```{r}
+tab <- as.data.frame(100*prop.table(table(dane$Married)))
+ggplot(tab, aes(x = Var1, y = Freq)) + 
+  geom_col(fill = "#FFFF99", colour = "black") +
+  geom_text(aes(label = paste0(round(Freq,1),"%")), 
+            stat = "identity", size = 4, 
+            fontface = "bold", position = position_stack(vjust = 0.5)) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(colour = "black", size = 10),
+        plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Married",
+       y = "%")
+```
+
+
+```{r}
+# wykres słupkowy dla zmiennej Loan_Status
+tab <- as.data.frame(100*prop.table(table(dane$Dependents)))
+ggplot(tab, aes(x = Var1, y = Freq)) + 
+  geom_col(fill = "#FFFF99", colour = "black") +
+  geom_text(aes(label = paste0(round(Freq,1),"%")), 
+            stat = "identity", size = 3, 
+            fontface = "bold", position = position_stack(vjust = 0.5)) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(colour = "black", size = 10),
+        plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Dependents",
+       y = "%")
+
+```
+
+```{r}
+tab <- as.data.frame(100*prop.table(table(dane$Education)))
+ggplot(tab, aes(x = Var1, y = Freq)) + 
+  geom_col(fill = "#FFFF99", colour = "black") +
+  geom_text(aes(label = paste0(round(Freq,1),"%")), 
+            stat = "identity", size = 4, 
+            fontface = "bold", position = position_stack(vjust = 0.5)) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(colour = "black", size = 10),
+        plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Education",
+       y = "%")
+```
+
+
+
+```{r}
+tab <- as.data.frame(100*prop.table(table(dane$Self_Employed)))
+ggplot(tab, aes(x = Var1, y = Freq)) + 
+  geom_col(fill = "#FFFF99", colour = "black") +
+  geom_text(aes(label = paste0(round(Freq,1),"%")), 
+            stat = "identity", size = 4, 
+            fontface = "bold", position = position_stack(vjust = 0.5)) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(colour = "black", size = 10),
+        plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Self Employed",
+       y = "%")
+```
+
+
+```{r}
+tab <- as.data.frame(100*prop.table(table(dane$Credit_History)))
+ggplot(tab, aes(x = Var1, y = Freq)) + 
+  geom_col(fill = "#FFFF99", colour = "black") +
+  geom_text(aes(label = paste0(round(Freq,1),"%")), 
+            stat = "identity", size = 4, 
+            fontface = "bold", position = position_stack(vjust = 0.5)) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(colour = "black", size = 10),
+        plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Credit History",
+       y = "%")
+```
+
+
+
+```{r}
+tab <- as.data.frame(100*prop.table(table(dane$Property_Area)))
+ggplot(tab, aes(x = Var1, y = Freq)) + 
+  geom_col(fill = "#FFFF99", colour = "black") +
+  geom_text(aes(label = paste0(round(Freq,1),"%")), 
+            stat = "identity", size = 4, 
+            fontface = "bold", position = position_stack(vjust = 0.5)) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(colour = "black", size = 10),
+        plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Property Area",
+       y = "%")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+W przypadku historii kredytowej nie mamy zaetykietowanych odpowiedzi, ale najprawdopodobniej oznaczają one 0=no, 1=yes.
+
+Poszczególne zmienne cechuje bardzo duża dysproporcja w rozkładach procentowych kategorii.
+
+# Ilościowe zmienne objaśniające
+Dla ilościowych zmiennych objaśniających obliczamy najpierw podstawowe miary rozkładu.
+
+```{r}
+# statystyki opisowe
+kable(describe(dane[,6:9])[c(2:5,8,9,11,12)])
+```
+
+W przypadku zmiennych `LoanAmount` i `Loan_Amount_Term` mamy braki danych (n<614). W powyższej tabeli zawarte są podstawowe miary położenia, rozproszenia, asymterii i skupienia.
+
+Średni dochód aplikującego o pożyczkę w badanej grupie klientów to 5403,46 dolarów, przy czym dochody poszczególnych osób różnią się od średniej przeciętnie o 6109,04 dolarów. Dla połowy osób dochód nie przekracza 3812,50 dolarów. Najmniejsza zaobserwowana wartość to 150 dolarów, a największa aż 81000 dolarów. W rozkładzie występuje skrajna asymetria prawostronna, jest on też wyższy i smuklejszy od rozkładu normalnego.
+
+Dla pozostałych zmiennych wyniki interpretuje się analogicznie. Zakresy osiąganych wartości są tutaj sensowne, nie ma żadnych wartości ujemnych. Jedyny problem stanowią bardzo duże wartości skupienia i kurtozy, na które wpływ mają najprawdopodobniej obserwacje odstające.
+
+Do prezentacji graficznej sporządzamy histogramy.
+
+```{r, warning = FALSE}
+# histogramy
+plot1 <- ggplot(dane, aes(x = ApplicantIncome)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Applicant Income", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot2 <- ggplot(dane, aes(x = CoapplicantIncome)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Coapplicant Income", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot3 <- ggplot(dane, aes(x = LoanAmount)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Loan Amount", 
+       x = "dollars", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+plot4 <- ggplot(dane, aes(x = Loan_Amount_Term)) + 
+  geom_histogram(colour = "black", fill = "#FFFF99", bins = 10) +
+  labs(title = "Loan Amount Term", 
+       x = "months", y = "n") +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+grid.arrange(plot1, plot2, plot3, plot4, nrow = 2)
+```
+
+Rozkłady zmiennych są bardzo nieregularne. W przypadku trzech pierwszych mamy skrajną asymetrię prawostronną (wydłużone ramię z prawej strony histogramu). Dla ostatniej zmiennej asymetria jest lewostronna.
+
+
