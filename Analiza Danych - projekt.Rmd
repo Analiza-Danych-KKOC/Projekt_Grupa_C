@@ -377,6 +377,212 @@ ggplot(dane, aes(x = Education, y = LoanAmount, fill = Property_Area)) +
   theme_minimal()
 ```
 
+## Wykres liniowy wartości pożyczki
+```{r, warning = FALSE}
+dane <- dane %>% arrange(LoanAmount)
+
+ggplot(dane, aes(x = seq_along(LoanAmount), y = LoanAmount)) +
+  geom_line(color = "blue") +
+  labs(title = "Wykres liniowy wartości pożyczki", x = "Numer obserwacji", y = "Warrtość pożyczki")
+```
+
+## Wykres rozrzutu długości i wartości pożyczki
+```{r, warning = FALSE}
+ggplot(dane, aes(x = LoanAmount, y = Loan_Amount_Term)) +
+  geom_point(color = "green") +
+  labs(title = "Wykres rozrzutu Loan Amount i Loan Terms", x = "Loan Amount", y = "Loan Terms")
+```
+## 
+
+```{r, warning = FALSE}
+ggplot(dane, aes(x = LoanAmount, y = Loan_Amount_Term, )) +
+  geom_point() +
+  facet_wrap(~Loan_Status, scales = "free") +
+  labs(title = "Wykresy rozrzutu wartości i okresu trwania pożyczki z podziałem na deycję pożyczkową", x = "Wartość pożyczki", y = "Okres pożyczkowania")
+```
+
+##Analiza opisowa
+
+W kolejnym etapie projektu przeprowadzono analizę opisową danych z firm ubezpieczeniowych, wspartą odpowiednimi grafikami.
+
+Dokonano odpowiedniego dopasowania formatów zmiennych, aby uwzględnić ich skalę pomiarową oraz przyszłe zastosowanie. Celem tego procesu jest zapewnienie jednolitości danych oraz ich poprawnej reprezentacji, co umożliwi dokładniejszą analizę i ułatwi korzystanie z tych informacji w przyszłości.
+
+```{r}
+
+dane$Married<-factor(dane$Married,ordered=TRUE)
+dane$Dependents<-factor(dane$Dependents,ordered=TRUE)
+dane$Education<-factor(dane$Education,ordered=TRUE)
+dane$Self_Employed<-factor(dane$Self_Employed,ordered=TRUE)
+dane$Credit_History<-factor(dane$Credit_History, ordered = TRUE)
+dane$Property_Area<-factor(dane$Property_Area)
+dane$Loan_Status<-factor(dane$Loan_Status)
+```
+
+## LoanStatus: YES, Statystyki opisowe dla ApplicantIncome i CoapplicantIncome
+
+```{r}
+library(DT)
+
+yes_data <- dane[dane$Loan_Status == "Y", c("ApplicantIncome", "CoapplicantIncome")]
+
+df_summary_yes <- data.frame(
+  Statystyka = c("Min", "Q1", "Median", "Mean", "Q3", "Max"),
+  ApplicantIncome = c(min(yes_data$ApplicantIncome), quantile(yes_data$ApplicantIncome, 0.25), median(yes_data$ApplicantIncome), mean(yes_data$ApplicantIncome), quantile(yes_data$ApplicantIncome, 0.75), max(yes_data$ApplicantIncome)),
+  CoapplicantIncome = c(min(yes_data$CoapplicantIncome), quantile(yes_data$CoapplicantIncome, 0.25), median(yes_data$CoapplicantIncome), mean(yes_data$CoapplicantIncome), quantile(yes_data$CoapplicantIncome, 0.75), max(yes_data$CoapplicantIncome))
+)
+DT::datatable(df_summary_yes, rownames = FALSE, options = list(dom = 't', paging = FALSE))
+```
+
+Tabela przedstawia statystyki opisowe dla dwóch zmiennych: ApplicantIncome (dochód wnioskodawcy) i CoapplicantIncome (dochód współmałżonka lub współmałżonki), dotyczące osób, które uzyskały pożyczkę.
+
+Możemy zauważyć różnice między dochodem wnioskodawcy (ApplicantIncome) a dochodem współmałżonka (CoapplicantIncome) w zakresie wartości minimalnych, maksymalnych, mediany, średniej oraz kwartyli (Q1 i Q3). Na przykład, mediana dochodu wnioskodawcy (3839.5) jest niższa niż mediana dochodu współmałżonka (1211.5), co sugeruje, że średni dochód wnioskodawcy jest wyższy niż średni dochód współmałżonka.
+
+##LoanStatus: NO, Statystyki opisowe dla ApplicantIncome i CoapplicantIncome
+
+```{r}
+
+no_data <- dane[dane$Loan_Status == "N", c("ApplicantIncome", "CoapplicantIncome")]
+
+df_summary_no <- data.frame(
+  Statystyka = c("Min", "Q1", "Median", "Mean", "Q3", "Max"),
+  ApplicantIncome = c(min(no_data$ApplicantIncome), quantile(no_data$ApplicantIncome, 0.25), median(no_data$ApplicantIncome), mean(no_data$ApplicantIncome), quantile(no_data$ApplicantIncome, 0.75), max(no_data$ApplicantIncome)),
+  CoapplicantIncome = c(min(no_data$CoapplicantIncome), quantile(no_data$CoapplicantIncome, 0.25), median(no_data$CoapplicantIncome), mean(no_data$CoapplicantIncome), quantile(no_data$CoapplicantIncome, 0.75), max(no_data$CoapplicantIncome))
+)
+DT::datatable(df_summary_no, rownames = FALSE, options = list(dom = 't', paging = FALSE))
+```
+Tabela przedstawia statystyki opisowe dla dwóch zmiennych: ApplicantIncome (dochód wnioskodawcy) i CoapplicantIncome (dochód współmałżonka lub współmałżonki), dla osób, które nie uzyskały pożyczki.
+
+Możemy zauważyć różnice między dochodem wnioskodawcy (ApplicantIncome) a dochodem współmałżonka (CoapplicantIncome) w zakresie wartości minimalnych, maksymalnych, mediany, średniej oraz kwartyli (Q1 i Q3). Na przykład, mediana dochodu wnioskodawcy (3867) jest niższa niż mediana dochodu współmałżonka (0), co sugeruje, że średni dochód wnioskodawcy jest wyższy niż średni dochód współmałżonka.
+
+##LoanStatus: YES, Statystyki opisowe ilość występowań dla danej cechy
+
+```{r}
+
+
+yes_data1 <- dane[dane$Loan_Status == "Y", c("Married", "Education","Self_Employed","Credit_History")]
+
+married_freq <- table(yes_data1$Married)
+education_freq <- table(yes_data1$Education)
+self_employed_freq <- table(yes_data1$Self_Employed)
+credit_history_freq <- table(yes_data1$Credit_History)
+
+df_summary_yes <- data.frame(
+  Variable = c("Married (No)", "Married (Yes)", "Education (Graduate)", "Education (Not Graduate)", "Self_Employed (No)", "Self_Employed (Yes)", "Credit_History (0)", "Credit_History (1)"),
+  Count = c(
+    married_freq["No"], married_freq["Yes"],
+    education_freq["Graduate"], education_freq["Not Graduate"],
+    self_employed_freq["No"], self_employed_freq["Yes"],
+    credit_history_freq["0"], credit_history_freq["1"]
+  )
+)
+
+DT::datatable(df_summary_yes, rownames = FALSE, options = list(dom = 't', paging = FALSE))
+```
+Tabela przedstawia statystyki opisowe ilości wystąpień dla danej cechy w zależności od różnych zmiennych, gdzie LoanStatus przyjmuje wartość "YES".
+
+Większość osób, które uzyskały kredyt, jest zamężna. Ooznacza to, że osoby będące w związku małżeńskim mogą być bardziej skłonne do otrzymania pozytywnej decyzji o przyznaniu kredytu.
+
+Większość osób, które uzyskały kredyt, posiada wykształcenie na poziomie studiów wyższych. Może to sugerować, że osoby z wyższym wykształceniem są bardziej skłonne do otrzymania pozytywnej decyzji o przyznaniu kredytu.
+
+Większość osób, które uzyskały kredyt, nie pracuje na własny rachunek. To może sugerować, że osoby zatrudnione na etacie są częściej akceptowane do otrzymania kredytu niż osoby prowadzące własną działalność gospodarczą.
+
+Praktycznie wszystkie osoby, które uzyskały kredyt, mają pozytywną historię kredytową. To silne wskazanie na to, że pozytywna historia kredytowa jest kluczowym czynnikiem decydującym o przyznaniu kredytu.
+
+##LoanStatus: No, Statystyki opisowe: ilość występowań dla danej cechy
+
+```{r}
+no_data1 <- dane[dane$Loan_Status == "N", c("Married", "Education","Self_Employed","Credit_History")]
+
+married_freq <- table(no_data1$Married)
+education_freq <- table(no_data1$Education)
+self_employed_freq <- table(no_data1$Self_Employed)
+credit_history_freq <- table(no_data1$Credit_History)
+
+df_summary_yes <- data.frame(
+  Variable = c("Married (No)", "Married (Yes)", "Education (Graduate)", "Education (Not Graduate)", "Self_Employed (No)", "Self_Employed (Yes)", "Credit_History (0)", "Credit_History (1)"),
+  Count = c(
+    married_freq["No"], married_freq["Yes"],
+    education_freq["Graduate"], education_freq["Not Graduate"],
+    self_employed_freq["No"], self_employed_freq["Yes"],
+    credit_history_freq["0"], credit_history_freq["1"]
+  )
+)
+
+DT::datatable(df_summary_yes, rownames = FALSE, options = list(dom = 't', paging = FALSE))
+```
+Tabela przedstawia statystyki opisowe ilości wystąpień dla danej cechy w zależności od różnych zmiennych, gdzie LoanStatus przyjmuje wartość "NO".
+
+Zarówno osoby zamężne  jak i osoby niezamężne mają znaczną liczbę wystąpień w przypadku braku otrzymanego kredytu. Nie ma wyraźnej dominacji żadnej z tych grup wśród tych, którzy nie otrzymali kredytu.
+
+Większość osób, które nie otrzymały kredytu, posiada wykształcenie na poziomie studiów wyższych. To może sugerować, że posiadanie wyższego wykształcenia nie jest decydującym czynnikiem w przyznawaniu kredytu.
+
+Większość osób, które nie otrzymały kredytu, nie pracuje na własny rachunek. To sugeruje, że fakt bycia pracownikiem etatowym może być korzystniejszy w kontekście uzyskania kredytu.
+
+Wedug danych z tabeli iczba osób z negatywną historią kredytową jest wyższa. Może to wskazywać na to, że historia kredytowa ma wpływ na decyzję o przyznaniu kredytu, ale nie jest jedynym czynnikiem decydującym.
+
+
+##Macierze korelacji
+
+
+```{r}
+library(corrplot)
+dane[, c(6:9)] <- lapply(dane[, c(6:9)], as.numeric, errors = "coerce")
+print(which(sapply(dane[, c(6:9)], class) != "numeric"))
+corr_matrix <- cor(dane[, c(6:9)], use = "complete.obs")
+corr_matrix
+corrplot(corr_matrix, method = "number", type = "upper", diag = FALSE)
+corrplot(corr_matrix, method = "color")
+
+```
+
+
+ApplicantIncome vs CoapplicantIncome: Współczynnik korelacji wynoszący -0.12 wskazuje na słabą ujemną korelację między dochodem wnioskodawcy (ApplicantIncome) a dochodem współmałżonka (CoapplicantIncome). Oznacza to, że gdy dochód wnioskodawcy rośnie, dochód współmałżonka maleje nieznacznie (i odwrotnie). Zmienne te są słabo ze sobą skorelowane.
+
+ApplicantIncome vs LoanAmount: Współczynnik korelacji wynoszący 0.54 wskazuje na umiarkowaną dodatnią korelację między dochodem wnioskodawcy (ApplicantIncome) a kwotą kredytu (LoanAmount). Oznacza to, że istnieje pewien pozytywny związek między dochodem wnioskodawcy a kwotą kredytu, co sugeruje, że osoby z wyższym dochodem mają tendencję do ubiegania się o wyższe kwoty kredytu.
+
+CoapplicantIncome vs LoanAmount: Współczynnik korelacji wynoszący 0.20 wskazuje na słabą dodatnią korelację między dochodem współmałżonka (CoapplicantIncome) a kwotą kredytu (LoanAmount). Oznacza to, że istnieje pewien pozytywny związek między dochodem współmałżonka a kwotą kredytu, jednak jest to słaba korelacja.
+
+Loan_Amount_Term vs pozostałe zmienne: Współczynniki korelacji między okresem kredytowania (Loan_Amount_Term) a pozostałymi zmiennymi są bliskie zeru (-0.02 do 0.05), co wskazuje na brak istotnej korelacji między długością kredytowania a dochodem wnioskodawcy, dochodem współmałżonka lub kwotą kredytu.
+
+
+```{r}
+library(ggplot2)
+ggplot(data = dane, aes(x = Education, fill = Loan_Status)) +
+  geom_bar(position = "dodge", width = 0.7) +
+  labs(title = "Decyzja o przyznaniu kredytu ze względu na wykształcenie",
+       x = "Liczba osób",
+       y = "Liczba decyzji") +
+  theme_minimal()
+ggplot(data = dane, aes(x = Property_Area, fill = Loan_Status)) +
+  geom_bar(position = "dodge", width = 0.7) +
+  labs(title = "Decyzja o przyznaniu kredytu według miejsca zamieszkania",
+       x = "Miejsce zamieszkania",
+       y = "Liczba decyzji") +
+  theme_minimal()
+```
+
+Według danych z wykresu powyżej, możemy stwierdzić, że na pozytywną decyzję o przyznaniu kredytu, największą i szansę, mają osoby posaidające wykształcenie.
+Możemy również stwierdizć, że największą szansę na otrzymanie kredytu mają osoby mieszkające w strefie półmiejskiej. Mniejsze szanse, na otrzymanie kredytu, utrzymujące się na zbliżonym poziomie, mają osoby zamieszkujące strefy wiejskie i stricte miejskie.
+
+###Testowanie zależności między Loan_Status a Married 
+
+
+```{r}
+
+tabela_kontyngencji_married <- table(dane$Loan_Status, dane$Married)
+  
+test_fisher <- fisher.test(tabela_kontyngencji_married)
+print(test_fisher)
+
+
+
+```
+P-value wynosi 0.01302, czyli prawdopodobieństwo otrzymania wyników równie ekstremalnych jak obserwowane, gdyby prawdziwa była hipoteza zerowa. Wartość p-value jest mniejsza niż przyjęty poziom istotności 0.05, co sugeruje istotność statystyczną i odrzucenie hipotezy zerowej.
+
+Przedział ufności dla współczynnika odds ratio wynosi od 1.093839 do 2.532840. Oznacza to, że istnieje 95% pewności, że prawdziwy współczynnik odds ratio mieści się w tym przedziale.
+
+Podsumowując, wyniki testu Fisher's Exact Test sugerują istotną statystycznie zależność między zmiennymi Loan_Status a Married, przy czym osoby będące w związku małżeńskim mogą mieć różne szanse na otrzymanie kredytu w porównaniu do osób, które nie są zamężne.
+
 
 
 
